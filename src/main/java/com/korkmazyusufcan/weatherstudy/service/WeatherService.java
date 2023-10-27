@@ -1,12 +1,11 @@
 package com.korkmazyusufcan.weatherstudy.service;
 
+import com.korkmazyusufcan.weatherstudy.constants.Constants;
 import com.korkmazyusufcan.weatherstudy.dto.WeatherDto;
 import com.korkmazyusufcan.weatherstudy.dto.weatherstack.WeatherResponse;
 import com.korkmazyusufcan.weatherstudy.model.Weather;
 import com.korkmazyusufcan.weatherstudy.repository.WeatherRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,7 +17,6 @@ import java.util.Optional;
 @Service
 public class WeatherService {
 
-    private String API_URL = "http://api.weatherstack.com/current?access_key=42e877a6a9a2f9889f5c26160badb00a&query=";
     private final WeatherRepository weatherRepository;
     private final RestTemplate restTemplate;
 
@@ -43,8 +41,9 @@ public class WeatherService {
 
     private WeatherDto createWeather(String cityName) {
         try {
-            WeatherResponse weatherResponse = restTemplate.getForObject(API_URL+cityName, WeatherResponse.class);
+            WeatherResponse weatherResponse = restTemplate.getForObject(generateApiUrl(cityName), WeatherResponse.class);
             log.info("Weather Response Come From WeatherStackAPI");
+            log.info(generateApiUrl(cityName));
             return WeatherDto.convertDto(saveWeather(weatherResponse,cityName));
         } catch (Exception exception){
             //TODO
@@ -67,5 +66,9 @@ public class WeatherService {
                 LocalDateTime.now()
         );
         return weatherRepository.save(newWeather);
+    }
+
+    private String generateApiUrl(String cityName){
+        return Constants.WEATHER_STACK_API_BASE_URL + Constants.WEATHER_STACK_API_KEY_PARAM + Constants.API_KEY + Constants.WEATHER_STACK_API_QUERY_PARAM + cityName;
     }
 }
