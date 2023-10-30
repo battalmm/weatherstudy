@@ -1,5 +1,6 @@
 package com.korkmazyusufcan.weatherstudy.exception;
 
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -45,5 +46,10 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handle(RuntimeException exception){
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<String> handle(RequestNotPermitted exception){
+        return new ResponseEntity<>("Too many requests",HttpStatus.TOO_MANY_REQUESTS);
     }
 }

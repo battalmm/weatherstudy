@@ -7,11 +7,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class Constants {
-    // public static API_URL =
-    //"http://api.weatherstack.com/current?access_key=42e877a6a9a2f9889f5c26160badb00a&query=";
 
     public static String WEATHER_STACK_API_BASE_URL;
     public static String API_KEY;
+    public static String CACHE_NAME_WEATHER;
     public static final String WEATHER_STACK_API_KEY_PARAM = "?access_key=";
     public static final String WEATHER_STACK_API_QUERY_PARAM = "&query=";
 
@@ -23,5 +22,10 @@ public class Constants {
     @Value("${weather_stack.api.key}")
     public void setApiKey(String key){
         API_KEY = key;
+    }
+
+    @Value("${weather_stack.cache.weather.name}")
+    public void setCacheNameWeather(String key){
+        CACHE_NAME_WEATHER = key;
     }
 }

@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  app:
+    image: 'weatherstudy:latest'
+    build:
+      context: .
+    ports:
+      - "9595:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      - "WEATHER_STACK_API_KEY=${WEATHER_STACK_API_KEY}"

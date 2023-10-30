@@ -5,7 +5,14 @@ import com.korkmazyusufcan.weatherstudy.dto.WeatherDto;
 import com.korkmazyusufcan.weatherstudy.dto.weatherstack.WeatherResponse;
 import com.korkmazyusufcan.weatherstudy.model.Weather;
 import com.korkmazyusufcan.weatherstudy.repository.WeatherRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,6 +22,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@CacheConfig(cacheNames = {"weather"})
 public class WeatherService {
 
     private final WeatherRepository weatherRepository;
@@ -26,6 +34,7 @@ public class WeatherService {
         this.restTemplate = restTemplate;
     }
 
+    @Cacheable(key = "#cityName")
     public WeatherDto getWeatherByCityName(String cityName) {
         Optional<Weather> optionalWeather = weatherRepository.findFirstByRequestedCityNameOrderByObservationTimeDesc(cityName);
 
@@ -34,23 +43,29 @@ public class WeatherService {
                 log.info("Past More Than 30 Minutes From Last Weather Request");
                 return createWeather(cityName);
             }
-            log.info("Requested Data Already Exist ");
+            log.info("Requested Data Already Exist. Data Comes From DB ");
             return WeatherDto.convertDto(weather);
         }).orElseGet(()->createWeather(cityName));
     }
 
-    private WeatherDto createWeather(String cityName) {
+    @CachePut(key = "#cityName")
+    public WeatherDto createWeather(String cityName) {
         try {
             WeatherResponse weatherResponse = restTemplate.getForObject(generateApiUrl(cityName), WeatherResponse.class);
             log.info("Weather Response Come From WeatherStackAPI");
-            log.info(generateApiUrl(cityName));
+            log.info("Generated API url: " + generateApiUrl(cityName));
             return WeatherDto.convertDto(saveWeather(weatherResponse,cityName));
         } catch (Exception exception){
-            //TODO
-            // Throw exception
             log.info(exception.getMessage());
             throw exception;
         }
+    }
+
+    @PostConstruct
+    @CacheEvict(allEntries = true)
+    @Scheduled(fixedDelayString = "${weather_stack.cache.weather.ttl}")
+    public void clearCache(){
+        log.info("Caches are clear");
     }
 
     private Weather saveWeather(WeatherResponse weatherResponse,String cityName) {
@@ -61,8 +76,6 @@ public class WeatherService {
                 weatherResponse.getLocation().getName(),
                 cityName,
                 LocalDateTime.parse(weatherResponse.getLocation().getLocaltime(),dateTimeFormatter),
-                //TODO
-                // Calculate wanted time format "yyyy-MM-dd HH:mm:ss"
                 LocalDateTime.now()
         );
         return weatherRepository.save(newWeather);

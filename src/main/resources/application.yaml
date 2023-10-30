@@ -12,9 +12,19 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+resilience4j:
+  ratelimiter:
+    instances:
+      limit:
+        limit-for-period: 10
+        limit-refresh-period: 1m
+        timeout-duration: 10s
+
 weather_stack:
   api:
     url: http://api.weatherstack.com/current
     key: ${WEATHER_STACK_API_KEY:key-not-found}
-
-
+  cache:
+    weather:
+      name: "weather"
+      ttl: "900000"

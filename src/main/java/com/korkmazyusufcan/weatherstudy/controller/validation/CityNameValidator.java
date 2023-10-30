@@ -16,14 +16,14 @@ public class CityNameValidator implements ConstraintValidator<CityNameConstraint
 
     @Override
     public boolean isValid(String cityName, ConstraintValidatorContext constraintValidatorContext) {
-        log.info("Input City Name:" + cityName);
+        log.info("CityNameValidator: Input City Name:" + cityName);
         cityName = cityName.replaceAll("[^a-zA-Z0-9]","").toLowerCase();
-        log.info("Converted City Name:" + cityName);
+        log.info("CityNameValidator: Converted City Name:" + cityName);
 
         boolean isValid = StringUtils.isNotBlank(cityName) && !StringUtils.isNumeric(cityName);
 
         if(!isValid){
-            log.info("City Name Could Not Pass Validation");
+            log.info("CityNameValidator: City Name Could Not Pass Validation");
             constraintValidatorContext.buildConstraintViolationWithTemplate(cityName).addConstraintViolation();
         }
 
